@@ -1,0 +1,55 @@
+version: "3"
+
+services: 
+  #####
+  # Services de Monitoring
+  #####
+
+  # Grafana - Interface Web de monitoring
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:5.2.4
+    ports:
+      - "9001:9001"
+    environment: 
+      - GF_SERVER_HTTP_PORT=9001
+    volumes:
+      - ./data/grafana:/var/lib/grafana
+
+  # Telegraf - Collecte les metrics de différentes sources et les stocke sur diférentes destination
+  telegraf:
+    container_name: telegraf
+    image: telegraf:1.8.0
+    ports:
+      - "5555" # Port où les metrics seront collectable par Prometheus(non forwardé)
+    volumes:
+      - "./services/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro"
+
+  # Prometheus - Stocke les metrics et dispose de son propre langage de requête
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus:v2.4.2
+    volumes: 
+      - ./services/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./data/prometheus:/prometheus
+    ports:
+      - "9090:9090"
+  #####
+  # MQTT Server
+  #####
+  mqtt_server:
+    image: toke/mosquitto # To be replaced with Eclipse image
+    ports:
+      -"1883:1883"
+      -"1884:9001"
+    volumes: 
+      - "./data/mqtt/data:/mqtt/data"
+      - "./data/mqtt/log:/mqtt/log"
+      - "./data/mqtt/config:/mqtt/config"
+  #####
+  # Micro Services
+  #####
+    mqtt_producer:
+      build: ./micro_services/mqtt_producer
+      volumes: 
+        - "./micro_services/mqtt_producer/app:/opt/app"
