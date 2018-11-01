@@ -38,18 +38,28 @@ services:
   # MQTT Server
   #####
   mqtt_server:
+    container_name: mqtt_server
     image: toke/mosquitto # To be replaced with Eclipse image
     ports:
-      -"1883:1883"
-      -"1884:9001"
+      - "1883:1883"
+      - "1884:9001"
     volumes: 
       - "./data/mqtt/data:/mqtt/data"
       - "./data/mqtt/log:/mqtt/log"
-      - "./data/mqtt/config:/mqtt/config"
+      - "./services/mqtt_server/config:/mqtt/config"
   #####
   # Micro Services
   #####
-    mqtt_producer:
-      build: ./micro_services/mqtt_producer
-      volumes: 
-        - "./micro_services/mqtt_producer/app:/opt/app"
+  mqtt_producer:
+    build: ./services/mqtt_producer
+    volumes: 
+      - "./services/mqtt_producer/app:/opt/app"
+
+#####
+# Réseau Docker qui permet à tout les containers 
+# d'appartenir au au même réseau virtuel
+#####
+networks: 
+  default:
+    external: 
+      name: custom
